@@ -215,7 +215,6 @@ public:
     for (int i = 0; i < loopSize; i++) {
       auto &a = vecAsteroids[i];
       a.pos += a.vel * fElapsedTime;
-      WrapCoordinates(a.pos);
 
       DrawWireframeModel(vecModelAstroid, a.pos, a.rotateAngle, a.nSize, FG_YELLOW);
 
@@ -283,19 +282,30 @@ public:
         vecBullets.erase(i, vecBullets.end());
     }
 
+    // remove asteroids that are off screen
+    if (vecAsteroids.size()) {
+      auto i = std::remove_if(vecAsteroids.begin(), vecAsteroids.end(), [this](const Transform &a) {
+        return (a.pos.x + a.nSize < 0 || a.pos.x - a.nSize >= ScreenWidth() || a.pos.y + a.nSize < 0 ||
+                a.pos.y - a.nSize >= ScreenHeight());
+      });
+      if (i != vecAsteroids.end())
+        vecAsteroids.erase(i, vecAsteroids.end());
+    }
+
     // draw player
-    DrawWireframeModel(vecModelPlayer, player.pos, player.rotateAngle, 1., FG_CYAN);
+    DrawWireframeModel(vecModelPlayer, player.pos, player.rotateAngle, 1., FG_CYAN, true);
     if (isIgniting)
-      DrawWireframeModel(vecModelFlame, player.pos, player.rotateAngle, 1., FG_RED);
+      DrawWireframeModel(vecModelFlame, player.pos, player.rotateAngle, 1., FG_RED, true);
     return true;
   }
 
   virtual bool OnUserDestroy() override { return true; }
 
   // overloaded draw function to wrap coordinates
-  virtual void Draw(int x, int y, short c = 0x2588, short col = 0x000F) override {
+  virtual void Draw(int x, int y, short c = 0x2588, short col = 0x000F, bool wrap = false) override {
     Vector2D wrapped{x, y};
-    WrapCoordinates(wrapped);
+    if (wrap)
+      WrapCoordinates(wrapped);
     olcConsoleGameEngine::Draw(wrapped.x, wrapped.y, c, col);
   }
 
@@ -313,7 +323,7 @@ public:
 
   // draw a wireframe model
   void DrawWireframeModel(const std::vector<Vector2D> &vecModelCoord, Vector2D offset, float angle, float scale = 1,
-                          int col = FG_WHITE) {
+                          int col = FG_WHITE, bool wrap = false) {
     std::vector<Vector2D> transformedCoords{};
 
     // rotation, scaling and translation
@@ -326,7 +336,8 @@ public:
     for (int i = 0; i < transformedCoords.size(); i++) {
       int j = (i + 1) % transformedCoords.size();
       // 0-1, 1-2 ... and wrap around
-      DrawLine(transformedCoords[i].x, transformedCoords[i].y, transformedCoords[j].x, transformedCoords[j].y, PIXEL_SOLID, col);
+      DrawLine(transformedCoords[i].x, transformedCoords[i].y, transformedCoords[j].x, transformedCoords[j].y, PIXEL_SOLID, col,
+               wrap);
     }
   }
 
@@ -343,7 +354,7 @@ public:
 
 int main() {
   AsteroidsGameEngine asteroidsGameEngine{};
-  asteroidsGameEngine.ConstructConsole(160, 100, 8, 8);
+  asteroidsGameEngine.ConstructConsole(128, 128, 8, 8);
   asteroidsGameEngine.Start();
 
   system("pause");

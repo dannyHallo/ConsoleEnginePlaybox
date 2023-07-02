@@ -401,7 +401,7 @@ public:
     return 1;
   }
 
-  virtual void Draw(int x, int y, short c = 0x2588, short col = 0x000F) {
+  virtual void Draw(int x, int y, short c = 0x2588, short col = 0x000F, bool wrap = false) {
     if (x >= 0 && x < m_nScreenWidth && y >= 0 && y < m_nScreenHeight) {
       m_bufScreen[y * m_nScreenWidth + x].Char.UnicodeChar = c;
       m_bufScreen[y * m_nScreenWidth + x].Attributes       = col;
@@ -443,7 +443,7 @@ public:
       y = m_nScreenHeight;
   }
 
-  void DrawLine(int x1, int y1, int x2, int y2, short c = 0x2588, short col = 0x000F) {
+  void DrawLine(int x1, int y1, int x2, int y2, short c = 0x2588, short col = 0x000F, bool wrap = false) {
     int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
     dx  = x2 - x1;
     dy  = y2 - y1;
@@ -462,7 +462,7 @@ public:
         xe = x1;
       }
 
-      Draw(x, y, c, col);
+      Draw(x, y, c, col, wrap);
 
       for (i = 0; x < xe; i++) {
         x = x + 1;
@@ -475,7 +475,7 @@ public:
             y = y - 1;
           px = px + 2 * (dy1 - dx1);
         }
-        Draw(x, y, c, col);
+        Draw(x, y, c, col, wrap);
       }
     } else {
       if (dy >= 0) {
@@ -488,7 +488,7 @@ public:
         ye = y1;
       }
 
-      Draw(x, y, c, col);
+      Draw(x, y, c, col, wrap);
 
       for (i = 0; y < ye; i++) {
         y = y + 1;
@@ -501,7 +501,7 @@ public:
             x = x - 1;
           py = py + 2 * (dx1 - dy1);
         }
-        Draw(x, y, c, col);
+        Draw(x, y, c, col, wrap);
       }
     }
   }
